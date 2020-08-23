@@ -1,0 +1,30 @@
+a method that takes an array of integers, and returns a new array with every other element
+
+Given an array of integers
+
+Initialize an empty array
+
+Iterate through the array of integers:
+  - if the index of the current item is an even number
+    - add it to the end of the new array
+  - otherwise, if the index of the current item is an odd number
+    - move to the next value in the array
+
+After iterating through the array, return the new array
+
+START
+
+# given a collection of integers named values
+
+SET iterator = 0
+SET result_arr = []
+
+WHILE iterator < the number of items in values
+  IF iterator is an even number
+    SET result_arr = result_arr + the value in values at index iterator
+  SET iterator = iterator + 1 
+
+RETURN result_arr
+
+END
+

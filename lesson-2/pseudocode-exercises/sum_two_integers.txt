@@ -1,0 +1,12 @@
+a method that returns the sum of two integers
+
+given two integers
+return sum of the two integers
+
+START
+
+# Given two integers
+
+SET result = number1 + number2
+RETURN result
+

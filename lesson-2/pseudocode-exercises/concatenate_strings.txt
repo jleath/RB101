@@ -1,0 +1,26 @@
+a method that takes an array of strings, and returns a string that is all those
+strings concatenated together
+
+Given a collection of integers
+
+Initialize an empty string
+
+Iterate through the collection
+  - update the initialized string by concatenating the current string to the end
+
+After iterating through the collection, return the string
+
+START
+
+# Given a collection of strings named words
+
+SET result_string = ''
+SET iterator = 0
+
+WHILE iterator < length of words
+  SET result_string = result_string + ' ' + the value in words at index "iterator"
+  SET iterator = iterator + 1
+
+RETURN result_string
+
+END
