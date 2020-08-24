@@ -68,7 +68,7 @@ loop do
   loan_months = loan_years * 12
   monthly_payment = calculate_rate(loan_amount, monthly_rate, loan_months)
 
-  prompt 'monthly_rate_output', "#{(monthly_rate * 100).round(2)}%"
+  prompt 'monthly_rate_output', format('%.2f%%', monthly_rate * 100)
   prompt 'duration_output', loan_months.to_s
   prompt 'payment_output', monthly_payment.round(2).to_s
 
