@@ -1,0 +1,16 @@
+en:
+  invalid_input: "Sorry, there is something wrong with your input. Please try again."
+  non_positive_input: "Sorry, you must enter a value greater than 0. Please try again."
+
+  welcome: "Welcome to the Mortgage Calculator!"
+  enter_loan_amount: "Enter the amount of your loan in dollars (ex. 1234.34):"
+  enter_apr: "Enter the annual percentage rate of the loan (ex. 5.0):"
+  enter_duration: "Enter the loan duration in years (ex. 5):"
+
+  monthly_rate_output: "Monthly Interest Rate: "
+  monthly_rate_outout_post: "%"
+  duration_output: "Loan Duration (Months): "
+  payment_output: "Monthly Payment: $"
+
+  run_again: "Would you like to run the Mortgage Calculator again?"
+  goodbye: "Thank you for using the Mortgage Calculator!"
