@@ -6,11 +6,7 @@ def prompt(message, postfix='', lang='en')
 end
 
 def calculate_rate(loan_amount, monthly_rate, loan_months)
-  if monthly_rate == 0.0
-    loan_amount / loan_months
-  else
-    loan_amount * (monthly_rate / (1 - (1 + monthly_rate)**-loan_months))
-  end
+  loan_amount * (monthly_rate / (1 - (1 + monthly_rate)**-loan_months))
 end
 
 def get_input(message, valid_fn)
@@ -26,8 +22,9 @@ def get_input(message, valid_fn)
 end
 
 def get_yes_no(message)
-  valid_fn = ->(input) { %w[y n Y N].include?(input) }
-  get_input(message, valid_fn).downcase
+  # only looks at the first character of the input
+  valid_fn = ->(input) { %w[y n Y N].include?(input.chr) }
+  get_input(message, valid_fn).chr.downcase
 end
 
 def get_positive_int(message)
@@ -71,8 +68,9 @@ loop do
   prompt 'monthly_rate_output', format('%.2f%%', monthly_rate * 100)
   prompt 'duration_output', loan_months.to_s
   prompt 'payment_output', monthly_payment.round(2).to_s
+  puts ''
 
-  break if get_yes_no('run_again') == 'n'
+  break if get_yes_no('run_again') != 'y'
 end
 
 prompt 'goodbye'
