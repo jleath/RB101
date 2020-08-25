@@ -1,5 +1,8 @@
 require 'yaml'
 MESSAGES = YAML.load_file('mortgage_calculator_messages.yml')
+VALID_YES_NO_RESPONSES = %w[y yes n no]
+POS_INT_REGEX = /^\d+$/
+POS_FLOAT_REGEX = /^\d?.?\d+$/
 
 def prompt(message, postfix='', lang='en')
   puts ">> #{MESSAGES[lang][message]}#{postfix}"
@@ -22,13 +25,12 @@ def get_input(message, valid_fn)
 end
 
 def get_yes_no(message)
-  # only looks at the first character of the input
-  valid_fn = ->(input) { %w[y n Y N].include?(input.chr) }
-  get_input(message, valid_fn).chr.downcase
+  valid_fn = ->(input) { VALID_YES_NO_RESPONSES.include?(input.downcase) }
+  get_input(message, valid_fn)
 end
 
 def get_positive_int(message)
-  valid_fn = ->(input) { /^\d+$/.match(input) }
+  valid_fn = ->(input) { POS_INT_REGEX.match(input) }
   result = nil
   loop do
     result = get_input(message, valid_fn).to_i
@@ -40,7 +42,7 @@ def get_positive_int(message)
 end
 
 def get_positive_float(message)
-  valid_fn = ->(input) { /^\d?.?\d+$/.match(input) }
+  valid_fn = ->(input) { POS_FLOAT_REGEX.match(input) }
   result = nil
   loop do
     result = get_input(message, valid_fn).to_f
