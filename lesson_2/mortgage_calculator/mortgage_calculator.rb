@@ -1,8 +1,15 @@
 require 'yaml'
 MESSAGES = YAML.load_file('mortgage_calculator_messages.yml')
+
 VALID_YES_NO_RESPONSES = %w[y yes n no]
+VALID_YES_RESPONSES = %w[y yes]
 POS_INT_REGEX = /^\d+$/
 POS_FLOAT_REGEX = /^\d?.?\d+$/
+MONTHS_IN_YEAR = 12
+
+def clear_screen
+  system('clear') || system('cls')
+end
 
 def prompt(message, postfix='', lang='en')
   puts ">> #{MESSAGES[lang][message]}#{postfix}"
@@ -57,22 +64,40 @@ def get_percentage(message)
   get_positive_float(message) / 100.0
 end
 
+def another_calculation?
+  VALID_YES_RESPONSES.include?(get_yes_no('run_again').downcase)
+end
+
+def display_monthly_rate(monthly_rate)
+  prompt 'monthly_rate_output', format('%.2f%%', monthly_rate * 100.0)
+end
+
+def display_duration(loan_months)
+  prompt 'duration_output', loan_months.to_s
+end
+
+def display_payment(monthly_payment)
+  prompt 'payment_output', format('%.2f', monthly_payment)
+end
+
+clear_screen
+
 prompt 'welcome'
 
 loop do
   loan_amount = get_positive_float 'enter_loan_amount'
   annual_rate = get_percentage 'enter_apr'
-  monthly_rate = annual_rate / 12.0
   loan_years = get_positive_int 'enter_duration'
-  loan_months = loan_years * 12
+
+  monthly_rate = annual_rate / MONTHS_IN_YEAR
+  loan_months = loan_years * MONTHS_IN_YEAR
   monthly_payment = calculate_rate(loan_amount, monthly_rate, loan_months)
 
-  prompt 'monthly_rate_output', format('%.2f%%', monthly_rate * 100)
-  prompt 'duration_output', loan_months.to_s
-  prompt 'payment_output', monthly_payment.round(2).to_s
-  puts ''
+  display_monthly_rate monthly_rate
+  display_duration loan_months
+  display_payment monthly_payment
 
-  break if get_yes_no('run_again') != 'y'
+  break if !another_calculation?
 end
 
 prompt 'goodbye'
