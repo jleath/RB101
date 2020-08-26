@@ -13,15 +13,15 @@ WIN_CONDITIONS = {
   spock: %w[scissors rock]
 }
 
-def get_message(*args)
+def string_lookup(*args)
   message = RPS_MESSAGES[LANG]
   args.size.times { |n| message = message[args[n]] }
   message
 end
 
-def prompt(output_msg, postfix='', newline=true)
-  prompt_msg = get_message('prompt')
-  print "#{prompt_msg} #{get_message(output_msg)}#{postfix}"
+def display(output_msg, postfix='', newline=true)
+  prompt_msg = string_lookup('prompt')
+  print "#{prompt_msg} #{string_lookup(output_msg)}#{postfix}"
   puts '' if newline
 end
 
@@ -31,10 +31,10 @@ end
 
 def get_input(message, valid_fn, msg_postfix='')
   loop do
-    prompt message, ' ' + msg_postfix
+    display message, ' ' + msg_postfix
     input = gets.chomp
     return input if valid_fn.call(input)
-    prompt 'invalid_choice_msg'
+    display 'invalid_choice_msg'
   end
 end
 
@@ -45,7 +45,7 @@ def get_player_choice
 end
 
 def get_computer_choice
-  prompt 'computer_thinking_msg'
+  display 'computer_thinking_msg'
   print '   '
   3.times do
     sleep SLEEP_TIME
@@ -61,17 +61,17 @@ def win?(first, second)
 end
 
 def display_win_message(winning_shape, losing_shape, winner)
-  prompt '', get_message('win_messages', winning_shape, losing_shape)
+  display '', string_lookup('win_messages', winning_shape, losing_shape)
   sleep(SLEEP_TIME)
-  prompt "#{winner}_won_msg"
+  display "#{winner}_won_msg"
 end
 
 def display_results(player, computer)
   # add a newline to space out the output
   puts('')
-  prompt 'player_chose_msg', ' ' + player
+  display 'player_chose_msg', ' ' + player
   sleep(SLEEP_TIME)
-  prompt 'computer_chose_msg', ' ' + computer
+  display 'computer_chose_msg', ' ' + computer
   sleep(SLEEP_TIME)
   if win?(player, computer)
     display_win_message(player, computer, 'player')
@@ -79,7 +79,7 @@ def display_results(player, computer)
     display_win_message(computer, player, 'computer')
   else
     sleep(SLEEP_TIME)
-    prompt 'tie_msg'
+    display 'tie_msg'
   end
 end
 
@@ -95,9 +95,9 @@ def play_game
   display_results(player_choice, computer_choice)
 end
 
-prompt 'welcome'
+display 'welcome'
 loop do
   play_game
   break unless play_again?
 end
-prompt 'goodbye_msg'
+display 'goodbye_msg'
