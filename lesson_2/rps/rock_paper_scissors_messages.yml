@@ -1,0 +1,16 @@
+en:
+  prompt: "=>"
+  choose_shape_msg: "Choose one:"
+  invalid_choice_msg: "Sorry, there is something wrong with your input. Please try again."
+
+  computer_thinking_msg: "The computer is thinking"
+  
+  player_chose_msg: "You chose:"
+  computer_chose_msg: "Computer chose:"
+  player_won_msg: "You won!"
+  computer_won_msg: "Computer won!"
+  tie_msg: "It's a tie!"
+  
+  play_again_msg: "Do you want to play again?"
+  goodbye_msg: "Thank you for playing. Goodbye!"
+
