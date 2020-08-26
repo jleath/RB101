@@ -1,12 +1,13 @@
 en:
-  prompt: "=>"
+  prompt: ">>"
+  welcome: "Welcome to Rock Paper Scissors Spock Lizard"
   choose_shape_msg: "Choose one:"
   invalid_choice_msg: "Sorry, there is something wrong with your input. Please try again."
 
   computer_thinking_msg: "The computer is thinking"
   
-  player_chose_msg: "You chose:"
-  computer_chose_msg: "Computer chose:"
+  player_chose_msg: "You chose"
+  computer_chose_msg: "The computer chose"
   player_won_msg: "You won!"
   computer_won_msg: "Computer won!"
   tie_msg: "It's a tie!"
@@ -14,3 +15,19 @@ en:
   play_again_msg: "Do you want to play again?"
   goodbye_msg: "Thank you for playing. Goodbye!"
 
+  win_messages:
+    scissors:
+      paper: "Scissors cuts Paper!"
+      lizard: "Scissors decapitates Lizard!"
+    paper:
+      rock: "Paper covers Rock!"
+      spock: "Paper disproves Spock!"
+    rock:
+      lizard: "Rock crushes Lizard!"
+      scissors: "Rock crushes Scissors!"
+    lizard:
+      spock: "Lizard poisons Spock!"
+      paper: "Lizard eats Paper!"
+    spock:
+      scissors: "Spock smashes Scissors!"
+      rock: "Spock vaporizes Rock!"
