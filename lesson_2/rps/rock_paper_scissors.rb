@@ -110,7 +110,6 @@ def play_game
   winner
 end
 
-# returns 1 if the player won, -1 if the computer
 def game_over?(scores)
   if scores[PLAYER_SCORE_INDEX] == NUM_MATCHES_TO_WIN
     :player_won
