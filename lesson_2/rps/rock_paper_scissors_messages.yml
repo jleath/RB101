@@ -13,7 +13,7 @@
   :computer_won_msg: "Computer won!"
   :tie_msg: "It's a tie!"
   
-  :play_again_msg: "Would you like to forfeit?"
+  :play_again_msg: "Would you like to forfeit? (yes/no)"
   :goodbye_msg: "Thank you for playing. Goodbye!"
 
   :player_grand_winner_msg: "You have won. You are the grand winner!"
