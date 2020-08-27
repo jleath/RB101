@@ -23,10 +23,6 @@ def display(output_msg, newline=true)
   puts '' if newline
 end
 
-def valid_selection?(choice)
-  VALID_SHAPES.include?(choice)
-end
-
 def get_input(message, valid_fn)
   loop do
     display message
@@ -59,6 +55,16 @@ def win?(first, second)
   string_lookup(:win_messages, first.to_sym, second.to_sym)
 end
 
+def determine_winner(player, computer)
+  winner = :tied_game
+  if win?(player, computer)
+    winner = :player_won
+  elsif win?(computer, player)
+    winner = :computer_won
+  end
+  winner
+end
+
 def display_win_message(shape1, shape2, winner)
   if winner == :player_won
     display string_lookup(:win_messages, shape1.to_sym, shape2.to_sym)
@@ -72,18 +78,7 @@ def display_win_message(shape1, shape2, winner)
   sleep(SLEEP_TIME)
 end
 
-def determine_winner(player, computer)
-  winner = :tied_game
-  if win?(player, computer)
-    winner = :player_won
-  elsif win?(computer, player)
-    winner = :computer_won
-  end
-  winner
-end
-
 def display_choices(player, computer)
-  # add a newline to space out the output
   puts('')
   display "#{string_lookup(:player_chose_msg)} #{player}"
   sleep(SLEEP_TIME)
@@ -94,6 +89,14 @@ end
 def display_results(player, computer, winner)
   display_choices(player, computer)
   display_win_message(player, computer, winner)
+end
+
+def display_winner(grand_winner)
+  if grand_winner == :player_won
+    display :player_grand_winner_msg
+  else
+    display :computer_grand_winner_msg
+  end
 end
 
 def user_forfeit?
@@ -125,14 +128,6 @@ def update_scores(scores, winner)
     scores[PLAYER_SCORE_INDEX] += 1
   elsif winner == :computer_won
     scores[COMPUTER_SCORE_INDEX] += 1
-  end
-end
-
-def display_winner(grand_winner)
-  if grand_winner == :player_won
-    display :player_grand_winner_msg
-  else
-    display :computer_grand_winner_msg
   end
 end
 
