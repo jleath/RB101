@@ -8,6 +8,10 @@ VALID_SHAPES = %w[rock paper scissors spock lizard]
 PLAYER_SCORE_INDEX = 0
 COMPUTER_SCORE_INDEX = 1
 
+def clear_screen
+  system('clear') | system('cls')
+end
+
 def string_lookup(*args)
   message = RPS_MESSAGES[LANG]
   args.size.times { |n| message = message[args[n]] }
@@ -132,6 +136,7 @@ def update_scores(scores, winner)
 end
 
 # -- Main game loop
+clear_screen
 display :welcome
 display format(string_lookup(:num_matches_msg), num_matches: NUM_MATCHES_TO_WIN)
 
