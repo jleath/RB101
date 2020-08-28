@@ -24,6 +24,11 @@
   :player_grand_winner_msg: "You have won. You are the grand winner!"
   :computer_grand_winner_msg: "You have lost. The computer is the grand winner!"
 
+  :scoreboard_header: "player     computer"
+  :player_winning_symbol: "<|-"
+  :computer_winning_symbol: "-|>"
+  :tie_symbol: "-|-"
+
   :win_messages:
     :scissors:
       :paper: "Scissors cuts Paper!"

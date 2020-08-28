@@ -168,13 +168,13 @@ end
 def display_scores(scores)
   player_score = scores[:player]
   computer_score = scores[:computer]
-  winner_indicator = '-|-'
+  winner_indicator = string_lookup(:tie_symbol)
   if player_score > computer_score
-    winner_indicator = '<|-'
+    winner_indicator = string_lookup(:player_winning_symbol)
   elsif computer_score > player_score
-    winner_indicator = '-|>'
+    winner_indicator = string_lookup(:computer_winning_symbol)
   end
-  display "player     computer"
+  display :scoreboard_header
   display "  #{player_score}    #{winner_indicator}    #{computer_score}"
 end
 
