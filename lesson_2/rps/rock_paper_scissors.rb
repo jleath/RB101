@@ -25,9 +25,7 @@ end
 
 def display(output_msg, newline=true)
   prompt_msg = string_lookup(:prompt)
-  if output_msg.is_a?(Symbol)
-    output_msg = string_lookup(output_msg)
-  end
+  output_msg = string_lookup(output_msg) if output_msg.is_a?(Symbol)
   print "#{prompt_msg} #{output_msg}"
   puts '' if newline
 end
@@ -37,7 +35,7 @@ def get_input(message, valid_fn)
     display(message)
     input = gets.chomp
     result = valid_fn.call(input)
-    return result.downcase if !valid_fn.nil?
+    return result.downcase if !result.nil?
 
     display(:invalid_choice_msg)
   end
