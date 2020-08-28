@@ -25,7 +25,7 @@ end
 
 def display(output_msg, newline=true)
   prompt_msg = string_lookup(:prompt)
-  if output_msg.is_a? Symbol
+  if output_msg.is_a?(Symbol)
     output_msg = string_lookup(output_msg)
   end
   print "#{prompt_msg} #{output_msg}"
@@ -34,12 +34,12 @@ end
 
 def get_input(message, valid_fn)
   loop do
-    display message
+    display(message)
     input = gets.chomp
     result = valid_fn.call(input)
     return result.downcase if !valid_fn.nil?
 
-    display :invalid_choice_msg
+    display(:invalid_choice_msg)
   end
 end
 
@@ -58,13 +58,13 @@ def get_player_choice
 end
 
 def get_computer_choice
-  display :computer_thinking_msg
+  display(:computer_thinking_msg)
   print '   '
   3.times do
-    sleep SLEEP_TIME
+    sleep(SLEEP_TIME)
     print '.'
   end
-  sleep SLEEP_TIME
+  sleep(SLEEP_TIME)
   puts ''
   VALID_SHAPES.keys.sample
 end
@@ -86,22 +86,22 @@ end
 def display_win_message(shape1, shape2, winner)
   if winner == :player
     display string_lookup(:win_messages, shape1.to_sym, shape2.to_sym)
-    display :player_won_msg
+    display(:player_won_msg)
   elsif winner == :computer
     display string_lookup(:win_messages, shape2.to_sym, shape1.to_sym)
-    display :computer_won_msg
+    display(:computer_won_msg)
   else
-    display :tie_msg
+    display(:tie_msg)
   end
-  sleep SLEEP_TIME
+  sleep(SLEEP_TIME)
 end
 
 def display_choices(player, computer)
-  puts('')
-  display "#{string_lookup(:player_chose_msg)} #{player}"
-  sleep SLEEP_TIME
-  display "#{string_lookup(:computer_chose_msg)} #{computer}"
-  sleep SLEEP_TIME
+  puts ''
+  display("#{string_lookup(:player_chose_msg)} #{player}")
+  sleep(SLEEP_TIME)
+  display("#{string_lookup(:computer_chose_msg)} #{computer}")
+  sleep(SLEEP_TIME)
 end
 
 def display_results(player, computer, winner)
@@ -111,9 +111,9 @@ end
 
 def display_winner(grand_winner)
   if grand_winner == :player
-    display :player_grand_winner_msg
+    display(:player_grand_winner_msg)
   else
-    display :computer_grand_winner_msg
+    display(:computer_grand_winner_msg)
   end
 end
 
@@ -136,8 +136,8 @@ def user_ready?(mock_user=false, num_times_mocked=0)
   mocking_messages = [:mock_msg1, :mock_msg2, :mock_msg3, :mock_msg4]
   message = mock_user ? mocking_messages[num_times_mocked] : :player_ready_msg
   if num_times_mocked == MAXIMUM_MOCKS
-    display message
-    sleep SLEEP_TIME * 2
+    display(message)
+    sleep(SLEEP_TIME * 2)
     true
   else
     get_yes_no(message) == 'yes'
@@ -174,8 +174,8 @@ def display_scores(scores)
   elsif computer_score > player_score
     winner_indicator = string_lookup(:computer_winning_symbol)
   end
-  display :scoreboard_header
-  display "  #{player_score}    #{winner_indicator}    #{computer_score}"
+  display(:scoreboard_header)
+  display("  #{player_score}    #{winner_indicator}    #{computer_score}")
 end
 
 def update_scores(scores, winner)
@@ -198,8 +198,9 @@ def move_to_next_round?(round_winner)
 end
 
 clear_screen
-display :welcome
-display format(string_lookup(:num_matches_msg), num_matches: NUM_MATCHES_TO_WIN)
+display(:welcome)
+display(format(string_lookup(:num_matches_msg),
+               num_matches: NUM_MATCHES_TO_WIN))
 
 scores = { player: 0, computer: 0 }
 
@@ -222,4 +223,4 @@ loop do
 end
 
 display_winner(game_winner)
-display :goodbye_msg
+display(:goodbye_msg)
