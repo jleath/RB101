@@ -14,6 +14,11 @@
   :tie_msg: "It's a tie!"
   
   :play_again_msg: "Would you like to forfeit? (yes/no)"
+  :mock_msg1: "Alright, just type yes whenever you're ready."
+  :mock_msg2: "Guess I'll just wait here all day."
+  :mock_msg3: "..."
+  :mock_msg4: "THAT'S IT. NEXT ROUND."
+  :player_ready_msg: "Are you ready for the next round? (yes/no)"
   :goodbye_msg: "Thank you for playing. Goodbye!"
 
   :player_grand_winner_msg: "You have won. You are the grand winner!"

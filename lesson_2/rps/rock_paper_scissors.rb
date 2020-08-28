@@ -4,9 +4,14 @@ RPS_MESSAGES = YAML.load_file('rock_paper_scissors_messages.yml')
 LANG = :en
 SLEEP_TIME = 0.75
 NUM_MATCHES_TO_WIN = 5
-VALID_SHAPES = %w[rock paper scissors spock lizard]
-PLAYER_SCORE_INDEX = 0
-COMPUTER_SCORE_INDEX = 1
+VALID_SHAPES = {
+  'rock' => %w[r rock],
+  'paper' => %w[p paper],
+  'scissors' => %w[sc scissors],
+  'spock' => %w[sp spock],
+  'lizard' => %w[l lizard]
+}
+MAXIMUM_MOCKS = 3
 
 def clear_screen
   system('clear') | system('cls')
@@ -31,14 +36,23 @@ def get_input(message, valid_fn)
   loop do
     display message
     input = gets.chomp
-    return input if valid_fn.call(input)
+    result = valid_fn.call(input)
+    return result.downcase if !valid_fn.nil?
+
     display :invalid_choice_msg
   end
 end
 
+def lookup_shape_key(shape_input)
+  VALID_SHAPES.each do |shape, valid_inputs|
+    return shape if valid_inputs.include?(shape_input.downcase)
+  end
+  nil
+end
+
 def get_player_choice
-  valid_fn = ->(choice) { VALID_SHAPES.include?(choice) }
-  valid_input_msg = VALID_SHAPES.join(', ')
+  valid_fn = ->(choice) { lookup_shape_key(choice) }
+  valid_input_msg = VALID_SHAPES.keys.join(', ')
   input_prompt = "#{string_lookup(:choose_shape_msg)} #{valid_input_msg}"
   get_input(input_prompt, valid_fn)
 end
@@ -52,42 +66,42 @@ def get_computer_choice
   end
   sleep SLEEP_TIME
   puts ''
-  VALID_SHAPES.sample
+  VALID_SHAPES.keys.sample
 end
 
 def win?(first, second)
-  string_lookup(:win_messages, first.to_sym, second.to_sym)
+  string_lookup(:win_messages, first.to_sym, second.to_sym) != nil
 end
 
 def determine_winner(player, computer)
   winner = :tied_game
   if win?(player, computer)
-    winner = :player_won
+    winner = :player
   elsif win?(computer, player)
-    winner = :computer_won
+    winner = :computer
   end
   winner
 end
 
 def display_win_message(shape1, shape2, winner)
-  if winner == :player_won
+  if winner == :player
     display string_lookup(:win_messages, shape1.to_sym, shape2.to_sym)
     display :player_won_msg
-  elsif winner == :computer_won
+  elsif winner == :computer
     display string_lookup(:win_messages, shape2.to_sym, shape1.to_sym)
     display :computer_won_msg
   else
     display :tie_msg
   end
-  sleep(SLEEP_TIME)
+  sleep SLEEP_TIME
 end
 
 def display_choices(player, computer)
   puts('')
   display "#{string_lookup(:player_chose_msg)} #{player}"
-  sleep(SLEEP_TIME)
+  sleep SLEEP_TIME
   display "#{string_lookup(:computer_chose_msg)} #{computer}"
-  sleep(SLEEP_TIME)
+  sleep SLEEP_TIME
 end
 
 def display_results(player, computer, winner)
@@ -96,20 +110,41 @@ def display_results(player, computer, winner)
 end
 
 def display_winner(grand_winner)
-  if grand_winner == :player_won
+  if grand_winner == :player
     display :player_grand_winner_msg
   else
     display :computer_grand_winner_msg
   end
 end
 
-def user_forfeit?
-  valid_fn = ->(input) { %w[yes no].include?(input.downcase) }
-  answer = get_input(:play_again_msg, valid_fn)
-  answer.downcase == 'yes'
+def get_yes_no(message)
+  valid_fn = lambda do |input|
+    if %w[yes no].include?(input.downcase)
+      return input
+    else
+      return nil
+    end
+  end
+  get_input(message, valid_fn)
 end
 
-def play_game
+def user_forfeit?
+  get_yes_no(:play_again_msg) == 'yes'
+end
+
+def user_ready?(mock_user=false, num_times_mocked=0)
+  mocking_messages = [:mock_msg1, :mock_msg2, :mock_msg3, :mock_msg4]
+  message = mock_user ? mocking_messages[num_times_mocked] : :player_ready_msg
+  if num_times_mocked == MAXIMUM_MOCKS
+    display message
+    sleep SLEEP_TIME * 2
+    true
+  else
+    get_yes_no(message) == 'yes'
+  end
+end
+
+def play_round
   player_choice = get_player_choice
   computer_choice = get_computer_choice
   winner = determine_winner(player_choice, computer_choice)
@@ -118,41 +153,73 @@ def play_game
 end
 
 def game_over?(scores)
-  if scores[PLAYER_SCORE_INDEX] == NUM_MATCHES_TO_WIN
-    :player_won
-  elsif scores[COMPUTER_SCORE_INDEX] == NUM_MATCHES_TO_WIN
-    :computer_won
-  else
-    :game_not_complete
+  scores.each do |_, score|
+    return true if score == NUM_MATCHES_TO_WIN
   end
+  false
+end
+
+def get_winner(scores)
+  scores.each do |player, score|
+    return player if score == NUM_MATCHES_TO_WIN
+  end
+end
+
+def display_scores(scores)
+  player_score = scores[:player]
+  computer_score = scores[:computer]
+  winner_indicator = '-|-'
+  if player_score > computer_score
+    winner_indicator = '<|-'
+  elsif computer_score > player_score
+    winner_indicator = '-|>'
+  end
+  display "player     computer"
+  display "  #{player_score}    #{winner_indicator}    #{computer_score}"
 end
 
 def update_scores(scores, winner)
-  if winner == :player_won
-    scores[PLAYER_SCORE_INDEX] += 1
-  elsif winner == :computer_won
-    scores[COMPUTER_SCORE_INDEX] += 1
-  end
+  return if winner == :tied_game
+
+  scores[winner] += 1
 end
 
-# -- Main game loop
+def move_to_next_round?(round_winner)
+  if round_winner == :computer && user_forfeit?
+    return false
+  elsif round_winner != :computer && !user_ready?
+    mocks = 0
+    loop do
+      break if user_ready?(true, mocks)
+      mocks += 1
+    end
+  end
+  true
+end
+
 clear_screen
 display :welcome
 display format(string_lookup(:num_matches_msg), num_matches: NUM_MATCHES_TO_WIN)
 
-scores = [0, 0]
+scores = { player: 0, computer: 0 }
+
+# -- Main game Loop --
+game_winner = nil
 
 loop do
-  winner = play_game
-  update_scores(scores, winner)
-  grand_winner = game_over?(scores)
-  if grand_winner != :game_not_complete
-    display_winner(grand_winner)
-    break
-  elsif user_forfeit?
-    display_winner(:computer_won)
+  round_winner = play_round
+  update_scores(scores, round_winner)
+  if game_over?(scores)
+    game_winner = get_winner(scores)
     break
   end
+  if !move_to_next_round?(round_winner)
+    game_winner = :computer
+    break
+  end
+  clear_screen
+  display_scores(scores)
 end
 
+display_winner(game_winner)
 display :goodbye_msg
