@@ -18,6 +18,12 @@ end
 
 def build_hash(arr)
   result = {}
+  arr.each_with_index { |item, index| result[item] = index }
+  result
+end
+
+def build_hash(arr)
+  result = {}
   arr.each_index { |i| result[arr[i]] = i }
   result
 end
