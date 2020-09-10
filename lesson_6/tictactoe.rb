@@ -23,8 +23,7 @@ end
 def get_input(message, valid_fn, error_msg)
   loop do
     prompt(message)
-    input = gets.chomp
-    result = valid_fn.call(input)
+    result = valid_fn.call(gets.chomp)
     return result.downcase unless result.nil?
 
     prompt(error_msg)
@@ -43,15 +42,13 @@ def valid_int?(str)
   str.match(/^\d+$/)
 end
 
-def valid_square_choice(str, avail_squares)
+def valid_square?(str, avail_squares)
   valid_int?(str) && avail_squares.include?(str.to_i)
 end
 
 def get_square_number(board)
   avail_squares = empty_squares(board)
-  valid_fn = lambda do |input|
-    valid_square_choice(input, avail_squares) ? input : nil
-  end
+  valid_fn = ->(input) { valid_square?(input, avail_squares) ? input : nil }
   message = "Choose a square #{joinor(avail_squares)}"
   error_msg = 'Sorry, there is something wrong with your input. ' \
               'Please try again.'
@@ -59,12 +56,13 @@ def get_square_number(board)
 end
 
 def joinor(arr, delimiter = ', ', final = 'or')
-  arr_copy = arr[0..-1]
-  if arr_copy.size <= 2
-    arr_copy.join(' ' + final + ' ')
+  # Make a copy so we don't mutate the original list
+  arr = arr[0..-1]
+  if arr.size <= 2
+    arr.join(' ' + final + ' ')
   else
-    arr_copy[-1] = "#{final} #{arr_copy.last}"
-    arr_copy.join(delimiter)
+    arr[-1] = "#{final} #{arr.last}"
+    arr.join(delimiter)
   end
 end
 
@@ -73,10 +71,10 @@ def clear_screen
 end
 
 def display_game_delay
-  prompt('That\'s fine. I\'ll wait.')
+  prompt("That's fine. I'll wait.")
   display_computer_thinking
   puts
-  prompt('Alright, I\'m tired of waiting. Let\'s start!')
+  prompt("Alright, I'm tired of waiting. Let's start!")
   sleep(GAME_START_DELAY)
 end
 
@@ -101,7 +99,7 @@ def display_winner(winner)
   case winner
   when :player then prompt('You won!')
   when :computer then prompt('You lose!')
-  when :tie then prompt('It\'s a tie!')
+  when :tie then prompt("It's a tie!")
   end
   puts
 end
@@ -190,6 +188,20 @@ def num_markers(board)
   markers.size - markers.count(INITIAL_MARKER)
 end
 
+def place_piece(board, player)
+  if player == :player
+    prompt("Player's turn")
+    square = get_square_number(board)
+    board[square] = PLAYER_MARKER
+  else
+    prompt("Computer's turn")
+    display_computer_thinking
+    square = computer_strategy(board)
+    board[square] = COMPUTER_MARKER
+  end
+end
+
+# AI strategy methods
 def find_pattern(board, pattern)
   square = nil
   WINNING_LINES.each do |line|
@@ -225,19 +237,6 @@ def computer_strategy(board)
   choice
 end
 
-def place_piece(board, player)
-  if player == :player
-    prompt("Player's turn")
-    square = get_square_number(board)
-    board[square] = PLAYER_MARKER
-  else
-    prompt("Computer's turn")
-    display_computer_thinking
-    square = computer_strategy(board)
-    board[square] = COMPUTER_MARKER
-  end
-end
-
 # Game control methods
 def board_full?(board)
   empty_squares(board).empty?
@@ -260,7 +259,7 @@ def round_over?(board)
 end
 
 def game_over?(scores)
-  scores[:player] == MAX_NUM_WINS || scores[:computer] == MAX_NUM_WINS
+  scores.values.include?(MAX_NUM_WINS)
 end
 
 def switch_player(curr)
