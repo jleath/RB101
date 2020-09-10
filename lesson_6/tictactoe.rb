@@ -1,6 +1,7 @@
 INITIAL_MARKER = ' '.freeze
 PLAYER_MARKER = 'X'.freeze
 COMPUTER_MARKER = 'O'.freeze
+NUM_SQUARES = 9
 MAX_NUM_WINS = 5
 AI_FAILURE_FACTOR = 7.5
 
@@ -31,9 +32,7 @@ def get_input(message, valid_fn, error_msg)
 end
 
 def get_yes_no(message)
-  valid_fn = lambda do |input|
-    %(yes no).include?(input.downcase) ? input : nil
-  end
+  valid_fn = ->(input) { %(yes no).include?(input.downcase) ? input : nil }
   error_msg = 'Sorry, you must enter yes or no. Please try again.'
   get_input(message, valid_fn, error_msg)
 end
@@ -173,7 +172,7 @@ end
 # Game board management methods
 def initialize_board
   new_board = {}
-  (1..9).each { |num| new_board[num] = INITIAL_MARKER }
+  (1..NUM_SQUARES).each { |num| new_board[num] = INITIAL_MARKER }
   new_board
 end
 
@@ -199,13 +198,17 @@ def place_piece(board, player)
   end
 end
 
+def matches_pattern(markers, pattern)
+  marker_counts = pattern.keys.map { |m| markers.count(m) }
+  marker_counts == pattern.values
+end
+
 # AI strategy methods
 def find_pattern(board, pattern)
   square = nil
   WINNING_LINES.each do |line|
     markers = board.values_at(*line)
-    marker_counts = pattern.keys.map { |marker| markers.count(marker) }
-    if marker_counts == pattern.values
+    if matches_pattern(markers, pattern)
       square = line[markers.find_index(INITIAL_MARKER)]
       # The AI is a little too smart and predictable, this will introduce
       # a small chance that the AI will 'make a mistake'
