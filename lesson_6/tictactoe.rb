@@ -203,16 +203,19 @@ def matches_pattern(markers, pattern)
   marker_counts == pattern.values
 end
 
+# The AI is a little too smart and predictable, this will introduce
+# a small chance that the AI will 'make a mistake'
+def ai_success?(num_markers)
+  rand(100) < (num_markers * AI_FAILURE_FACTOR)
+end
+
 # AI strategy methods
 def find_pattern(board, pattern)
   square = nil
   WINNING_LINES.each do |line|
     markers = board.values_at(*line)
-    if matches_pattern(markers, pattern)
+    if matches_pattern(markers, pattern) && ai_success?(num_markers(board))
       square = line[markers.find_index(INITIAL_MARKER)]
-      # The AI is a little too smart and predictable, this will introduce
-      # a small chance that the AI will 'make a mistake'
-      square = nil if rand(100) < (num_markers(board) * AI_FAILURE_FACTOR)
     end
   end
   square
