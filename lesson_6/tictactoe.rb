@@ -3,7 +3,7 @@ PLAYER_MARKER = 'X'.freeze
 COMPUTER_MARKER = 'O'.freeze
 NUM_SQUARES = 9
 MAX_NUM_WINS = 5
-AI_FAILURE_FACTOR = 7.5
+AI_FAILURE_FACTOR = 5
 
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9], # rows
                  [1, 4, 7], [2, 5, 8], [3, 6, 9], # columns
@@ -206,7 +206,7 @@ end
 # The AI is a little too smart and predictable, this will introduce
 # a small chance that the AI will 'make a mistake'
 def ai_success?(num_markers)
-  rand(100) < (num_markers * AI_FAILURE_FACTOR)
+  rand(100) > (num_markers * AI_FAILURE_FACTOR)
 end
 
 # AI strategy methods
@@ -286,6 +286,7 @@ end
 scores = { player: 0, computer: 0 }
 first_player = :player
 # main game loop
+clear_screen
 prompt('Welcome to TicTacToe!')
 prompt("The first player to win #{MAX_NUM_WINS} rounds is the champion.")
 ready = get_yes_no('Are you ready to begin? (yes or no)')
