@@ -1,9 +1,20 @@
+FIREWORKS =
+[
+  [' ', ' ', ' ', ' ', '.', '*', '%', '*', '%', '.'],
+  [' ', ' ', ' ', '.', ' ', ' ', ' ', ' ', ' ', ' '],
+  [' ', ' ', '.', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+  [' ', '.', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+  ['.', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+].freeze
+
 INITIAL_MARKER = ' '.freeze
 PLAYER_MARKER = 'X'.freeze
 COMPUTER_MARKER = 'O'.freeze
 NUM_SQUARES = 9
-MAX_NUM_WINS = 5
-AI_FAILURE_FACTOR = 5
+MAX_NUM_WINS = 1
+AI_FAILURE_FACTOR = 100
+MAX_FIREWORKS_DELAY = 18
+FIREWORKS_COLUMNS = 23
 
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9], # rows
                  [1, 4, 7], [2, 5, 8], [3, 6, 9], # columns
@@ -67,6 +78,46 @@ end
 
 def clear_screen
   system('clear') || system('cls')
+end
+
+def generate_fireworks
+  delays = { 5 => 3, 14 => 7, 10 => 13, 18 => 4 }
+  10.times do
+    delays[rand(FIREWORKS_COLUMNS)] = rand(MAX_FIREWORKS_DELAY)
+  end
+  delays
+end
+
+def display_final_winner(scores)
+  loss_message = 'You lose! The computer is the champion!'
+  win_message = 'You are the champion!'
+  message = scores[:player] > scores[:computer] ? win_message : loss_message
+  delays = generate_fireworks
+  strings = [' ' * delays.keys.max] * FIREWORKS.size
+  total_num_frames = delays.values.max + FIREWORKS[0].size
+  (0...total_num_frames).each do |curr_frame|
+    clear_screen
+    prompt(message)
+    strings.each_index do |line_no|
+      strings[line_no] = update_frame_string(strings[line_no], line_no, curr_frame, delays)
+      puts strings[line_no]
+    end
+    sleep(0.15)
+  end
+  system('clear') || system('cls')
+end
+
+def update_frame_string(string, line_no, curr_frame, delays)
+  result = ' ' * string.size
+  delays.each do |column, delay|
+    animation_frame = curr_frame - delay
+    break if animation_frame < 0
+
+    if animation_frame < FIREWORKS[line_no].size
+      result[column] = FIREWORKS[line_no][animation_frame]
+    end
+  end
+  result
 end
 
 def display_game_delay
@@ -139,6 +190,30 @@ def display_winning_line(board, winning_line, scores)
   end
 end
 
+def display_post_round(board, scores, winner)
+  display_board(board, scores)
+  winning_line = detect_winning_line(board)
+  if winner == :tie
+    display_tie_animation(board, scores)
+  else
+    display_winning_line(board, winning_line, scores)
+  end
+  clear_screen
+  scores[winner] += 1 unless winner == :tie
+  display_scoreboard(scores)
+  display_winner(winner)
+end
+
+def display_intro
+  clear_screen
+  prompt('Welcome to TicTacToe!')
+  prompt("The first player to win #{MAX_NUM_WINS} rounds is the champion.")
+  ready = get_yes_no('Are you ready to begin? (yes or no)')
+  unless ready == 'yes'
+    display_game_delay
+  end
+end
+
 def single_square_animation(board, square, scores)
   num_frames = WIN_ANIMATION.size
   num_frames.times do |frame|
@@ -152,13 +227,6 @@ end
 def display_tie_animation(board, scores)
   square_order = [1, 2, 3, 6, 9, 8, 7, 4, 5]
   square_order.each { |i| single_square_animation(board, i, scores) }
-end
-
-def display_final_winner(scores)
-  loss_message = 'You lose! The computer is the champion!'
-  win_message = 'You are the champion!'
-  message = scores[:player] > scores[:computer] ? win_message : loss_message
-  prompt(message)
 end
 
 def play_again?(prev_winner)
@@ -262,8 +330,15 @@ def round_over?(board)
   someone_won?(board) || board_full?(board)
 end
 
-def game_over?(scores)
-  scores.values.include?(MAX_NUM_WINS)
+def game_over?(scores, winner)
+  return true if scores.values.include?(MAX_NUM_WINS)
+
+  unless play_again?(winner)
+    prompt('The player has forfeited!')
+    scores[:player] = -1
+    return true
+  end
+  false
 end
 
 def switch_player(curr)
@@ -282,44 +357,25 @@ def play_round(board, scores, first_player)
   curr_player
 end
 
-# gameplay variables
-scores = { player: 0, computer: 0 }
-first_player = :player
-# main game loop
-clear_screen
-prompt('Welcome to TicTacToe!')
-prompt("The first player to win #{MAX_NUM_WINS} rounds is the champion.")
-ready = get_yes_no('Are you ready to begin? (yes or no)')
-unless ready == 'yes'
-  display_game_delay
-end
+first_playthrough = true
 loop do
-  board = initialize_board
-  last_player = play_round(board, scores, first_player)
+  # gameplay variables
+  scores = { player: 0, computer: 0 }
+  first_player = :player
+  display_intro if first_playthrough
+  # main game loop
+  loop do
+    board = initialize_board
+    last_player = play_round(board, scores, first_player)
+    winner = someone_won?(board) ? last_player : :tie
+    display_post_round(board, scores, winner)
 
-  # post-round presentation
-  display_board(board, scores)
-  winning_line = detect_winning_line(board)
-  if someone_won?(board)
-    winner = last_player
-    scores[last_player] += 1
-    display_winning_line(board, winning_line, scores)
-  else
-    winner = :tie
-    display_tie_animation(board, scores)
+    break if game_over?(scores, winner)
+    first_player = switch_player(first_player)
   end
 
-  clear_screen
-  display_scoreboard(scores)
-  display_winner(winner)
-  first_player = switch_player(first_player)
-  break if game_over?(scores)
-  unless play_again?(winner)
-    prompt('The player has forfeited!')
-    scores[:player] = -1
-    break
-  end
+  display_final_winner(scores)
+  break unless get_yes_no('Would you like to play again? (yes or no)') == 'yes'
+  first_playthrough = false
 end
-
-display_final_winner(scores)
 prompt('Thanks for playing TicTacToe! Goodbye!')
