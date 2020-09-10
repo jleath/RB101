@@ -1,6 +1,6 @@
-INITIAL_MARKER = ' '
-PLAYER_MARKER = 'X'
-COMPUTER_MARKER = 'O'
+INITIAL_MARKER = ' '.freeze
+PLAYER_MARKER = 'X'.freeze
+COMPUTER_MARKER = 'O'.freeze
 MAX_NUM_WINS = 5
 AI_FAILURE_FACTOR = 6
 
@@ -24,7 +24,7 @@ def get_input(message, valid_fn, error_msg)
     prompt(message)
     input = gets.chomp
     result = valid_fn.call(input)
-    return result.downcase if !result.nil?
+    return result.downcase unless result.nil?
 
     prompt(error_msg)
   end
@@ -34,7 +34,7 @@ def get_yes_no(message)
   valid_fn = lambda do |input|
     %(yes no).include?(input.downcase) ? input : nil
   end
-  error_msg = "Sorry, you must enter yes or no. Please try again."
+  error_msg = 'Sorry, you must enter yes or no. Please try again.'
   get_input(message, valid_fn, error_msg)
 end
 
@@ -52,12 +52,12 @@ def get_square_number(board)
     valid_square_choice(input, avail_squares) ? input : nil
   end
   message = "Choose a square #{joinor(avail_squares)}"
-  error_msg = 'Sorry, there is something wrong with your input. ' +
+  error_msg = 'Sorry, there is something wrong with your input. ' \
               'Please try again.'
   get_input(message, valid_fn, error_msg).to_i
 end
 
-def joinor(arr, delimiter=', ', final='or')
+def joinor(arr, delimiter = ', ', final = 'or')
   arr_copy = arr[0..-1]
   if arr_copy.size <= 2
     arr_copy.join(' ' + final + ' ')
@@ -81,9 +81,9 @@ def display_scoreboard(scores)
                      else
                        '-|-'
                      end
-  puts(" TIC   TAC   TOE")
-  puts("------------------")
-  puts("player    computer")
+  puts(' TIC   TAC   TOE')
+  puts('------------------')
+  puts('player    computer')
   puts("  #{player_score}    #{winner_indicator}    #{computer_score}")
 end
 
@@ -101,18 +101,18 @@ end
 def display_board(board, scores)
   clear_screen
   display_scoreboard(scores)
-  puts "     |     |"
+  puts '     |     |'
   puts "  #{board[1]}  |  #{board[2]}  |  #{board[3]}"
-  puts "     |     |"
-  puts "-----+-----+-----"
-  puts "     |     |"
+  puts '     |     |'
+  puts '-----+-----+-----'
+  puts '     |     |'
   puts "  #{board[4]}  |  #{board[5]}  |  #{board[6]}"
-  puts "     |     |"
-  puts "-----+-----+-----"
-  puts "     |     |"
+  puts '     |     |'
+  puts '-----+-----+-----'
+  puts '     |     |'
   puts "  #{board[7]}  |  #{board[8]}  |  #{board[9]}"
-  puts "     |     |"
-  puts ""
+  puts '     |     |'
+  puts
 end
 # rubocop:enable Metrics/AbcSize
 
@@ -144,7 +144,7 @@ def single_square_animation(board, square, scores)
 end
 
 def display_tie_animation(board, scores)
-  square_order = [1, 2, 3, 6, 9, 8, 7, 4 ,5]
+  square_order = [1, 2, 3, 6, 9, 8, 7, 4, 5]
   square_order.each do |i|
     single_square_animation(board, i, scores)
   end
@@ -158,7 +158,7 @@ def display_final_winner(scores)
 end
 
 def play_again?(prev_winner)
-  loss_message = 'Do you still want to continue after that humiliating ' +
+  loss_message = 'Do you still want to continue after that humiliating ' \
                  'defeat? (yes or no)'
   win_message = 'Do you want to continue? (yes or no)'
   message = prev_winner == :computer ? loss_message : win_message
@@ -178,7 +178,7 @@ end
 
 def num_markers(board)
   markers = board.values
-  return markers.size - markers.count(INITIAL_MARKER)
+  markers.size - markers.count(INITIAL_MARKER)
 end
 
 def find_pattern(board, pattern)
@@ -211,9 +211,9 @@ end
 
 def computer_strategy(board)
   choice = find_opportunity(board)
-  choice = find_threat(board) if choice == nil
-  choice = pick_five(board) if choice == nil
-  choice = empty_squares(board).sample if choice == nil
+  choice = find_threat(board) if choice.nil?
+  choice = pick_five(board) if choice.nil?
+  choice = empty_squares(board).sample if choice.nil?
   choice
 end
 
@@ -265,6 +265,7 @@ def play_round(board, scores, first_player)
     display_board(board, scores)
     place_piece(board, curr_player)
     break if round_over?(board)
+
     curr_player = switch_player(curr_player)
   end
   curr_player
@@ -287,7 +288,7 @@ loop do
     display_winning_line(board, winning_line, scores)
   else
     winner = :tie
-    display_tie_animation(board, scores)  
+    display_tie_animation(board, scores)
   end
 
   clear_screen
@@ -295,7 +296,7 @@ loop do
   display_winner(winner)
   first_player = switch_player(first_player)
   break if game_over?(scores)
-  if !play_again?(winner)
+  unless play_again?(winner)
     scores[:player] = -1000
     break
   end
