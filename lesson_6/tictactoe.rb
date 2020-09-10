@@ -322,4 +322,4 @@ loop do
 end
 
 display_final_winner(scores)
-prompt('Thanks for playing Tic Tac Toe! Goodbye!')
+prompt('Thanks for playing TicTacToe! Goodbye!')
