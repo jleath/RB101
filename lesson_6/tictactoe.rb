@@ -152,9 +152,7 @@ end
 
 def display_tie_animation(board, scores)
   square_order = [1, 2, 3, 6, 9, 8, 7, 4, 5]
-  square_order.each do |i|
-    single_square_animation(board, i, scores)
-  end
+  square_order.each { |i| single_square_animation(board, i, scores) }
 end
 
 def display_final_winner(scores)
