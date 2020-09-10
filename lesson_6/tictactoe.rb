@@ -2,7 +2,7 @@ INITIAL_MARKER = ' '.freeze
 PLAYER_MARKER = 'X'.freeze
 COMPUTER_MARKER = 'O'.freeze
 MAX_NUM_WINS = 5
-AI_FAILURE_FACTOR = 6
+AI_FAILURE_FACTOR = 7.5
 
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9], # rows
                  [1, 4, 7], [2, 5, 8], [3, 6, 9], # columns
@@ -13,6 +13,7 @@ WIN_ANIMATION = ['-', '\\', '|', '/'].freeze
 WIN_ANIMATION_FRAMES = 16
 ANIMATION_REFRESH = 0.1
 COMPUTER_MOVE_DELAY = 0.35
+GAME_START_DELAY = 2.0
 
 # Input/Output methods
 def prompt(msg)
@@ -69,6 +70,14 @@ end
 
 def clear_screen
   system('clear') || system('cls')
+end
+
+def display_game_delay
+  prompt('That\'s fine. I\'ll wait.')
+  display_computer_thinking
+  puts
+  prompt('Alright, I\'m tired of waiting. Let\'s start!')
+  sleep(GAME_START_DELAY)
 end
 
 def display_scoreboard(scores)
@@ -185,9 +194,8 @@ def find_pattern(board, pattern)
   square = nil
   WINNING_LINES.each do |line|
     markers = board.values_at(*line)
-    marker_set1 = markers.count(pattern.keys[0])
-    marker_set2 = markers.count(pattern.keys[1])
-    if marker_set1 == pattern[pattern.keys[0]] && marker_set2 == pattern[pattern.keys[1]]
+    marker_counts = pattern.keys.map { |marker| markers.count(marker) }
+    if marker_counts == pattern.values
       square = line[markers.find_index(INITIAL_MARKER)]
       # The AI is a little too smart and predictable, this will introduce
       # a small chance that the AI will 'make a mistake'
@@ -275,6 +283,12 @@ end
 scores = { player: 0, computer: 0 }
 first_player = :player
 # main game loop
+prompt('Welcome to TicTacToe!')
+prompt("The first player to win #{MAX_NUM_WINS} rounds is the champion.")
+ready = get_yes_no('Are you ready to begin? (yes or no)')
+unless ready == 'yes'
+  display_game_delay
+end
 loop do
   board = initialize_board
   last_player = play_round(board, scores, first_player)
@@ -297,7 +311,8 @@ loop do
   first_player = switch_player(first_player)
   break if game_over?(scores)
   unless play_again?(winner)
-    scores[:player] = -1000
+    prompt('The player has forfeited!')
+    scores[:player] = -1
     break
   end
 end
