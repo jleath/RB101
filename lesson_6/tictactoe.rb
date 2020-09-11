@@ -1,20 +1,23 @@
-FIREWORKS =
-[
-  [' ', ' ', ' ', ' ', '.', '*', '%', '*', '%', '.'],
-  [' ', ' ', ' ', '.', ' ', ' ', ' ', ' ', ' ', ' '],
-  [' ', ' ', '.', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-  [' ', '.', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-  ['.', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
-].freeze
+FIREWORKS = [[' ', ' ', ' ', ' ', '.', '*', '%', '*', '%', '.'],
+             [' ', ' ', ' ', '.', ' ', ' ', ' ', ' ', ' ', ' '],
+             [' ', ' ', '.', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+             [' ', '.', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+             ['.', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']].freeze
 
 INITIAL_MARKER = ' '.freeze
 PLAYER_MARKER = 'X'.freeze
 COMPUTER_MARKER = 'O'.freeze
 NUM_SQUARES = 9
-MAX_NUM_WINS = 1
-AI_FAILURE_FACTOR = 100
-MAX_FIREWORKS_DELAY = 18
+MAX_NUM_WINS = 3
+AI_FAILURE_FACTOR = 7.5
+
+MAX_FIREWORKS_DELAY = 30
 FIREWORKS_COLUMNS = 23
+MIN_FIREWORK_HEIGHT = 3
+MAX_FIREWORK_HEIGHT = 5
+NUM_GEN_FIREWORKS = 15
+NUM_ANIMATION_FRAMES = FIREWORKS[0].size
+NUM_ANIMATION_LINES = FIREWORKS.size
 
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9], # rows
                  [1, 4, 7], [2, 5, 8], [3, 6, 9], # columns
@@ -27,7 +30,7 @@ ANIMATION_REFRESH = 0.1
 COMPUTER_MOVE_DELAY = 0.35
 GAME_START_DELAY = 2.0
 
-# Input/Output methods
+# User input methods
 def prompt(msg)
   puts("> #{msg}")
 end
@@ -59,14 +62,13 @@ end
 def get_square_number(board)
   avail_squares = empty_squares(board)
   valid_fn = ->(input) { valid_square?(input, avail_squares) ? input : nil }
-  message = "Choose a square #{joinor(avail_squares)}"
+  message = "Choose a square (#{joinor(avail_squares)})"
   error_msg = 'Sorry, there is something wrong with your input. ' \
               'Please try again.'
   get_input(message, valid_fn, error_msg).to_i
 end
 
 def joinor(arr, delimiter = ', ', final = 'or')
-  # Make a copy so we don't mutate the original list
   arr = arr[0..-1]
   if arr.size <= 2
     arr.join(' ' + final + ' ')
@@ -76,48 +78,74 @@ def joinor(arr, delimiter = ', ', final = 'or')
   end
 end
 
+# animation and display methods
 def clear_screen
   system('clear') || system('cls')
 end
 
 def generate_fireworks
-  delays = { 5 => 3, 14 => 7, 10 => 13, 18 => 4 }
-  10.times do
-    delays[rand(FIREWORKS_COLUMNS)] = rand(MAX_FIREWORKS_DELAY)
+  # seeding the fireworks sequence to make sure that the random
+  # number generation doesn't make us wait 10 frames
+  firework_info = { 3 => [2, 3], 12 => [1, 5], 8 => [5, 4] }
+  NUM_GEN_FIREWORKS.times do
+    column_no = rand(FIREWORKS_COLUMNS)
+    delay = rand(MAX_FIREWORKS_DELAY)
+    height = rand(MIN_FIREWORK_HEIGHT..MAX_FIREWORK_HEIGHT)
+    firework_info[column_no] = build_firework_info(delay, height)
   end
-  delays
+  firework_info
+end
+
+def display_fireworks
+  fireworks_info = generate_fireworks
+  animation_rows = [' ' * FIREWORKS_COLUMNS] * MAX_FIREWORK_HEIGHT
+  total_num_frames = MAX_FIREWORKS_DELAY + NUM_ANIMATION_FRAMES
+  (0...total_num_frames).each do |curr_frame|
+    clear_screen
+    update_animation!(animation_rows, curr_frame, fireworks_info)
+    puts(animation_rows)
+    prompt('  Congratulations!!')
+    prompt('You are the champion!')
+    sleep(ANIMATION_REFRESH)
+  end
+end
+
+def update_animation!(rows, curr_frame, fireworks_info)
+  rows.each_index do |line_no|
+    rows[line_no] = update_animation_row(line_no, curr_frame, fireworks_info)
+  end
+end
+
+def build_firework_info(delay, height)
+  [delay, height]
+end
+
+def firework_delay(fw_info)
+  fw_info[0]
+end
+
+def firework_height(fw_info)
+  fw_info[1]
+end
+
+def update_animation_row(line_no, curr_frame, fw_info)
+  result = ' ' * FIREWORKS_COLUMNS
+  fw_info.each do |column, info|
+    frame = curr_frame - firework_delay(info)
+    line = line_no - (MAX_FIREWORK_HEIGHT - firework_height(info))
+    next unless frame.between?(0, NUM_ANIMATION_FRAMES - 1)
+    next unless line.between?(0, NUM_ANIMATION_LINES - 1)
+    result[column] = FIREWORKS[line][frame]
+  end
+  result
 end
 
 def display_final_winner(scores)
-  loss_message = 'You lose! The computer is the champion!'
-  win_message = 'You are the champion!'
-  message = scores[:player] > scores[:computer] ? win_message : loss_message
-  delays = generate_fireworks
-  strings = [' ' * delays.keys.max] * FIREWORKS.size
-  total_num_frames = delays.values.max + FIREWORKS[0].size
-  (0...total_num_frames).each do |curr_frame|
-    clear_screen
-    prompt(message)
-    strings.each_index do |line_no|
-      strings[line_no] = update_frame_string(strings[line_no], line_no, curr_frame, delays)
-      puts strings[line_no]
-    end
-    sleep(0.15)
+  if scores[:player] > scores[:computer]
+    display_fireworks
+  else
+    prompt('You lose! the computer is the champion!')
   end
-  system('clear') || system('cls')
-end
-
-def update_frame_string(string, line_no, curr_frame, delays)
-  result = ' ' * string.size
-  delays.each do |column, delay|
-    animation_frame = curr_frame - delay
-    break if animation_frame < 0
-
-    if animation_frame < FIREWORKS[line_no].size
-      result[column] = FIREWORKS[line_no][animation_frame]
-    end
-  end
-  result
 end
 
 def display_game_delay
@@ -373,7 +401,7 @@ loop do
     break if game_over?(scores, winner)
     first_player = switch_player(first_player)
   end
-
+  clear_screen
   display_final_winner(scores)
   break unless get_yes_no('Would you like to play again? (yes or no)') == 'yes'
   first_playthrough = false
