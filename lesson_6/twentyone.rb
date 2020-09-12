@@ -23,6 +23,15 @@ BUST_VALUE = 21
 DEALER_STOP = 17
 VALID_PLAYER_ACTION = %w(hit stay).freeze
 NUM_INITIAL_CARDS = 2
+RESULT_MESSAGE = {
+  player_busted: 'Player busted! Dealer wins!',
+  dealer_busted: 'Dealer busted! Player wins!',
+  player_blackjack: 'Player blackjack! Player wins!',
+  dealer_blackjack: 'Dealer blackjack! Dealer wins!',
+  tie: "It's a tie!",
+  player_won: 'Player won!',
+  dealer_won: 'Dealer won!'
+}
 
 def prompt(msg)
   puts("> #{msg}")
@@ -42,21 +51,27 @@ def get_input(message, valid_fn, error_msg)
   end
 end
 
+def get_yes_no(message)
+  valid_fn = ->(input) { %(yes no).include?(input.downcase) ? input : nil }
+  error_msg = 'Sorry, you must enter yes or no. Please try again.'
+  get_input(message, valid_fn, error_msg)
+end
+
 def display_hand_info(hand, dealer, game_end = false)
   clear_screen
   hand_string = hand.map { |card| value(card) }.join(' ')
   dealer_string = dealer.map { |card| value(card) }.join(' ')
+  player_total = hand_value(hand)
+  dealer_total = hand_value(dealer)
   if game_end
-    prompt("Dealer: #{dealer_string}")
+    prompt("Dealer: #{dealer_string} -> #{dealer_total}")
   else
     prompt("Dealer: #{value(upcard(dealer))}")
   end
-  puts
-  puts
-  prompt("Player: #{hand_string}")
+  prompt("Player: #{hand_string} -> #{player_total}")
 end
 
-def get_player_action
+def player_action
   valid_input_fn = lambda do |input|
     VALID_PLAYER_ACTION.include?(input.downcase) ? input : nil
   end
@@ -67,6 +82,11 @@ def get_player_action
   when 'hit' then :hit
   when 'stay' then :stay
   end
+end
+
+def play_again?
+  response = get_yes_no("Would you like to play again?")
+  response == 'yes'
 end
 
 def display_intro
@@ -83,13 +103,7 @@ end
 
 # Deck Abstraction
 def build_deck
-  deck = []
-  SUITS.each do |suit|
-    VALUES.each do |val|
-      deck << card(val, suit)
-    end
-  end
-  deck
+  SUITS.product(VALUES).shuffle
 end
 
 def hand_value(hand)
@@ -110,8 +124,7 @@ end
 
 # For now, assume there are cards left in the deck
 def draw_card!(deck)
-  card_index = rand(deck.size - 1)
-  deck.delete_at(card_index)
+  deck.pop
 end
 
 # Card Abstraction
@@ -153,20 +166,23 @@ def busted?(hand)
   hand_value(hand) > BUST_VALUE
 end
 
+def blackjack?(hand)
+  hand_value(hand) == BUST_VALUE
+end
+
 # Gameplay methods
 def players_turn(hand, dealer, deck)
   loop do
     display_hand_info(hand, dealer)
 
-    action = get_player_action
-    break if action == :stay
+    action = player_action
 
     case action
     when :hit then add_card!(draw_card!(deck), hand)
+    when :stay then break
     end
 
-    break if busted?(hand)
-
+    break if busted?(hand) || blackjack?(hand)
   end
 end
 
@@ -193,11 +209,50 @@ def deal_first_cards!(players_hand, dealers_hand, deck)
   end
 end
 
+# rubocop: disable Metrics/MethodLength
+def determine_result(players_hand, dealers_hand)
+  player_total = hand_value(players_hand)
+  dealer_total = hand_value(dealers_hand)
+  if busted?(players_hand)
+    :player_busted
+  elsif busted?(dealers_hand)
+    :dealer_busted
+  elsif blackjack?(players_hand)
+    :player_blackjack
+  elsif blackjack?(dealers_hand)
+    :dealer_blackjack
+  elsif player_total == dealer_total
+    :tie
+  elsif player_total < dealer_total
+    :dealer_won
+  else
+    :player_won
+  end
+end
+# rubocop: enable Metrics/MethodLength
+
+def display_result(players_hand, dealers_hand, result)
+  display_hand_info(players_hand, dealers_hand, true)
+  prompt(RESULT_MESSAGE[result])
+end
+
 display_intro
-dealers_hand = []
-players_hand = []
-deck = build_deck
-deal_first_cards!(players_hand, dealers_hand, deck)
-players_turn(players_hand, dealers_hand, deck)
-dealers_turn(dealers_hand, deck)
-display_hand_info(players_hand, dealers_hand, true)
+loop do
+  dealers_hand = []
+  players_hand = []
+  deck = build_deck
+
+  deal_first_cards!(players_hand, dealers_hand, deck)
+  unless blackjack?(players_hand) || blackjack?(dealers_hand)
+    players_turn(players_hand, dealers_hand, deck)
+    unless busted?(players_hand) || blackjack?(players_hand)
+      dealers_turn(dealers_hand, deck)
+    end
+  end
+  display_hand_info(players_hand, dealers_hand, true)
+  result = determine_result(players_hand, dealers_hand)
+  display_result(players_hand, dealers_hand, result)
+
+  break unless play_again?
+  prompt("Thank you for playing TwentyOne! Goodbye!")
+end
