@@ -103,7 +103,7 @@ end
 
 # Deck Abstraction
 def build_deck
-  SUITS.product(VALUES).shuffle
+  VALUES.product(SUITS).shuffle
 end
 
 def hand_value(hand)
