@@ -209,10 +209,19 @@ def deal_first_cards!(players_hand, dealers_hand, deck)
   end
 end
 
-# rubocop: disable Metrics/MethodLength
-def determine_result(players_hand, dealers_hand)
+def determine_winner(players_hand, dealers_hand)
   player_total = hand_value(players_hand)
   dealer_total = hand_value(dealers_hand)
+  if player_total == dealer_total
+    :tie
+  elsif player_total < dealer_total
+    :dealer_won
+  else
+    :player_won
+  end
+end
+
+def determine_result(players_hand, dealers_hand)
   if busted?(players_hand)
     :player_busted
   elsif busted?(dealers_hand)
@@ -221,15 +230,10 @@ def determine_result(players_hand, dealers_hand)
     :player_blackjack
   elsif blackjack?(dealers_hand)
     :dealer_blackjack
-  elsif player_total == dealer_total
-    :tie
-  elsif player_total < dealer_total
-    :dealer_won
   else
-    :player_won
+    determine_winner(players_hand, dealers_hand)
   end
 end
-# rubocop: enable Metrics/MethodLength
 
 def display_result(players_hand, dealers_hand, result)
   display_hand_info(players_hand, dealers_hand, true)
