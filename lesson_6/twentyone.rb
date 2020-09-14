@@ -52,15 +52,18 @@ def get_input(message, valid_fn, error_msg)
 end
 
 def get_yes_no(message)
-  valid_fn = ->(input) { %(yes no).include?(input.downcase) ? input : nil }
+  valid_fn = lambda do |input|
+    return nil if input == ''
+    %(yes no).include?(input.downcase) ? input : nil
+  end
   error_msg = 'Sorry, you must enter yes or no. Please try again.'
   get_input(message, valid_fn, error_msg)
 end
 
 def display_hand_info(hand, dealer, game_end = false)
   clear_screen
-  hand_string = hand.map { |card| value(card) }.join(' ')
-  dealer_string = dealer.map { |card| value(card) }.join(' ')
+  hand_string = cards(hand).map { |card| value(card) }.join(' ')
+  dealer_string = cards(dealer).map { |card| value(card) }.join(' ')
   player_total = hand_value(hand)
   dealer_total = hand_value(dealer)
   if game_end
@@ -95,7 +98,7 @@ def display_intro
   prompt('You and the dealer will each get two cards.')
   prompt("You'll see both of your cards but only one of the dealer's cards.")
   prompt("Hit to take another card or stay to stop taking cards.")
-  prompt("If the value of your cards surpasses 21, you automatically lose!")
+  prompt("If the value of your cards surpasses #{BUST_VALUE}, you automatically lose!")
   prompt("Whoever has the most valuable hand at the end wins!")
   prompt("Ready? Press the enter key to start!")
   gets.chomp
@@ -106,10 +109,22 @@ def build_deck
   VALUES.product(SUITS).shuffle
 end
 
+def build_hand
+  [[0], []]
+end
+
 def hand_value(hand)
+  hand[0]
+end
+
+def cards(hand)
+  hand[1]
+end
+
+def calc_hand_value(hand)
   points = 0
   aces = []
-  hand.each do |card|
+  cards(hand).each do |card|
     ace?(card) ? aces << card : points += point_value(card, points)
   end
   aces.each do |ace|
@@ -119,7 +134,8 @@ def hand_value(hand)
 end
 
 def add_card!(card, hand)
-  hand << card
+  cards(hand) << card
+  hand[0] = calc_hand_value(hand)
 end
 
 # For now, assume there are cards left in the deck
@@ -190,16 +206,18 @@ def dealer_stop?(hand)
   hand_value(hand) > DEALER_STOP
 end
 
-def dealers_turn(hand, deck)
+def dealers_turn(players_hand, dealers_hand, deck)
   loop do
-    break if dealer_stop?(hand)
+    break if dealer_stop?(dealers_hand)
 
-    add_card!(draw_card!(deck), hand)
+    add_card!(draw_card!(deck), dealers_hand)
+    display_hand_info(players_hand, dealers_hand, true)
+    sleep(1.0)
   end
 end
 
 def upcard(hand)
-  value(hand[0])
+  cards(hand)[0]
 end
 
 def deal_first_cards!(players_hand, dealers_hand, deck)
@@ -240,17 +258,25 @@ def display_result(players_hand, dealers_hand, result)
   prompt(RESULT_MESSAGE[result])
 end
 
+def display_dealers_hand(players_hand, dealers_hand)
+  display_hand_info(players_hand, dealers_hand)
+  sleep(1.0)
+  display_hand_info(players_hand, dealers_hand, true)
+  sleep(1.0)
+end
+
 display_intro
 loop do
-  dealers_hand = []
-  players_hand = []
+  dealers_hand = build_hand
+  players_hand = build_hand
   deck = build_deck
 
   deal_first_cards!(players_hand, dealers_hand, deck)
   unless blackjack?(players_hand) || blackjack?(dealers_hand)
     players_turn(players_hand, dealers_hand, deck)
     unless busted?(players_hand) || blackjack?(players_hand)
-      dealers_turn(dealers_hand, deck)
+      display_dealers_hand(players_hand, dealers_hand)
+      dealers_turn(players_hand, dealers_hand, deck)
     end
   end
   display_hand_info(players_hand, dealers_hand, true)
@@ -258,5 +284,5 @@ loop do
   display_result(players_hand, dealers_hand, result)
 
   break unless play_again?
-  prompt("Thank you for playing TwentyOne! Goodbye!")
 end
+prompt("Thank you for playing TwentyOne! Goodbye!")
